@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TSE-X Demo Devices</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1a1a24;
+      --accent-blue: #3b82f6;
+      --accent-teal: #14b8a6;
+      --accent-purple: #8b5cf6;
+      --accent-orange: #f97316;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+      --accent-cyan: #06b6d4;
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --border-color: #2a2a3a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image: 
+        linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .logo span { color: var(--accent-blue); }
+
+    .tagline {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+    }
+
+    .demo-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Viewer ID Display */
+    .viewer-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 15px 25px;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .viewer-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .viewer-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+      animation: pulse 2s infinite;
+    }
+
+    .viewer-label {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .viewer-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--accent-cyan);
+    }
+
+    .viewer-hint {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .viewer-hint span {
+      color: var(--accent-teal);
+    }
+
+    /* Instructions */
+    .instructions {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 35px;
+      text-align: center;
+    }
+
+    .instructions h2 {
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      color: var(--accent-teal);
+    }
+
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      background: var(--accent-blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .step-text {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Device Cards */
+    .devices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .device-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .device-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .device-card.coffee { --device-color: var(--accent-orange); }
+    .device-card.lock { --device-color: var(--accent-teal); }
+    .device-card.vending { --device-color: var(--accent-purple); }
+
+    .device-card.has-session {
+      border-color: var(--device-color);
+      box-shadow: 0 0 20px rgba(var(--device-color-rgb), 0.2);
+    }
+
+    .device-card.coffee { --device-color-rgb: 249, 115, 22; }
+    .device-card.lock { --device-color-rgb: 20, 184, 166; }
+    .device-card.vending { --device-color-rgb: 139, 92, 246; }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--device-color), transparent);
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .card-header h3 {
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+    }
+
+    .card-header p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .device-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #ffffff;
+      margin-top: 8px;
+    }
+
+    .live-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: var(--accent-green);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 10px;
+      display: none;
+      animation: pulse 1.5s infinite;
+    }
+
+    .live-badge.show { display: block; }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .card-content {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .qr-section {
+      text-align: center;
+    }
+
+    .qr-container {
+      background: white;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .qr-label {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+
+    .device-info {
+      flex: 1;
+    }
+
+    .device-info p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .price-tag {
+      display: inline-block;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+    }
+
+    .price-tag span { color: var(--accent-green); }
+
+    /* Session Display (inline in card) */
+    .session-display {
+      margin-top: 20px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--device-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: none;
+    }
+
+    .session-display.active { display: block; }
+
+    .session-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+
+    .session-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .session-badge {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 10px;
+      background: var(--device-color);
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* Coffee Session */
+    .coffee-session-content {
+      text-align: center;
+    }
+
+    .brew-type-display {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .brew-type-label {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    .brew-timer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 3rem;
+      color: var(--accent-orange);
+      margin-bottom: 10px;
+    }
+
+    .brew-progress {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-primary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+
+    .brew-progress-fill {
+      height: 100%;
+      background: var(--accent-orange);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .coffee-animation-mini {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 15px;
+    }
+
+    .mini-cup {
+      width: 50px;
+      height: 40px;
+      background: white;
+      border-radius: 3px 3px 15px 15px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mini-cup.iced {
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(200,230,255,0.9));
+    }
+
+    .mini-fill {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(180deg, #8B4513, #5D3A1A);
+      border-radius: 0 0 12px 12px;
+      transition: height 1s ease;
+    }
+
+    .mini-steam {
+      display: flex;
+      gap: 4px;
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .mini-steam.hidden { display: none; }
+
+    .mini-steam-line {
+      width: 2px;
+      height: 12px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 2px;
+      animation: steam 1.5s ease-in-out infinite;
+    }
+
+    .mini-steam-line:nth-child(2) { animation-delay: 0.3s; }
+    .mini-steam-line:nth-child(3) { animation-delay: 0.6s; }
+
+    .mini-ice {
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      gap: 2px;
+    }
+
+    .mini-ice.show { display: flex; }
+
+    .mini-ice-cube {
+      width: 8px;
+      height: 8px;
+      background: rgba(200, 230, 255, 0.8);
+      border-radius: 2px;
+    }
+
+    /* Lock Session */
+    .lock-session-content {
+      text-align: center;
+    }
+
+    .lock-status-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .lock-timer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 3.5rem;
+      color: var(--accent-teal);
+      margin-bottom: 5px;
+      text-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
+    }
+
+    .lock-timer.warning {
+      color: var(--accent-orange);
+      text-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+    }
+
+    .lock-timer.critical {
+      color: var(--accent-red);
+      text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+      animation: timer-blink 1s infinite;
+    }
+
+    .lock-session-info {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .lock-session-info span {
+      color: var(--accent-teal);
+    }
+
+    .lock-actions {
+      margin-top: 15px;
+    }
+
+    .end-session-btn {
+      padding: 10px 20px;
+      background: var(--accent-red);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .end-session-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    /* Vending Session */
+    .vending-session-content {
+      text-align: center;
+    }
+
+    .vending-item-display {
+      background: var(--bg-primary);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .vending-slot-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      color: var(--accent-purple);
+      margin-bottom: 5px;
+    }
+
+    .vending-item-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .vending-item-price {
+      color: var(--accent-green);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .vending-animation-mini {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 15px;
+    }
+
+    .mini-vending {
+      width: 80px;
+      height: 100px;
+      background: linear-gradient(180deg, #3a3a4a, #2a2a3a);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mini-vending-display {
+      width: 90%;
+      height: 50px;
+      background: #1a1a24;
+      margin: 8px auto;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .mini-vending-slot {
+      width: 70%;
+      height: 25px;
+      background: #1a1a24;
+      margin: 0 auto;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mini-vending-item {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.2rem;
+      transition: top 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .mini-vending-item.dispensed {
+      top: 2px;
+    }
+
+    /* Complete States */
+    .session-complete {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .complete-icon {
+      width: 50px;
+      height: 50px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .complete-icon.expired {
+      background: var(--accent-orange);
+    }
+
+    .session-complete h4 {
+      color: var(--accent-green);
+      margin-bottom: 8px;
+    }
+
+    .session-complete h4.expired {
+      color: var(--accent-orange);
+    }
+
+    .session-complete p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Waiting State */
+    .waiting-state {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--text-secondary);
+    }
+
+    .waiting-icon {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+
+    .waiting-text {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+
+    .waiting-hint {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      border-top: 1px solid var(--border-color);
+      margin-top: 40px;
+    }
+
+    .footer p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    .footer a:hover { text-decoration: underline; }
+
+    /* Animations */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @keyframes steam {
+      0% { transform: translateY(0) scaleX(1); opacity: 0.4; }
+      50% { transform: translateY(-6px) scaleX(1.3); opacity: 0.2; }
+      100% { transform: translateY(-12px) scaleX(0.5); opacity: 0; }
+    }
+
+    @keyframes timer-blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .logo { font-size: 2rem; }
+      .devices-grid { grid-template-columns: 1fr; }
+      .card-content { flex-direction: column; align-items: center; }
+      .viewer-bar { flex-direction: column; text-align: center; }
+      .steps { flex-direction: column; gap: 15px; }
+      .brew-timer, .lock-timer { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  
+  <div class="container">
+    <header class="header">
+      <h1 class="logo">TSE-<span>X</span></h1>
+      <p class="tagline">Connecting Real-World Devices</p>
+      <span class="demo-badge">Interactive Demo</span>
+    </header>
+
+    <!-- Viewer ID Bar -->
+    <div class="viewer-bar">
+      <div class="viewer-info">
+        <div class="viewer-status-dot"></div>
+        <div>
+          <div class="viewer-label">Session ID</div>
+          <div class="viewer-id" id="viewer-id">Loading...</div>
+        </div>
+      </div>
+      <div class="viewer-hint">
+        QR codes are <span>unique to this page</span> — scan with TSE-X app to sync
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <section class="instructions">
+      <h2>How It Works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <span class="step-text">Scan a QR code with TSE-X app</span>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <span class="step-text">Pay with real TSE or USDC tokens</span>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <span class="step-text">Watch it sync here automatically</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Device Cards -->
+    <div class="devices-grid">
+      
+      <!-- Coffee Maker -->
+      <div class="device-card coffee" id="card-coffee">
+        <div class="card-header">
+          <h3>☕ Demo Coffee Maker</h3>
+          <p>Hot Brew (2:10) or Over Ice (2:30)</p>
+          <div class="device-id">X402-COFFEE-001-DEMO</div>
+          <div class="live-badge" id="live-coffee">LIVE</div>
+        </div>
+        <div class="card-body">
+          <div class="card-content">
+            <div class="qr-section">
+              <div class="qr-container" id="qr-coffee"></div>
+              <div class="qr-label">Scan to brew</div>
+            </div>
+            <div class="device-info">
+              <p>Select Hot Brew or Over Ice in the app. Timer and animation sync automatically.</p>
+              <div class="price-tag">Price: <span>$0.10</span> in TSE</div>
+            </div>
+          </div>
+          
+          <!-- Session Display -->
+          <div class="session-display" id="session-coffee">
+            <div class="session-header">
+              <span class="session-title">Active Brew</span>
+              <span class="session-badge" id="badge-coffee">BREWING</span>
+            </div>
+            
+            <div class="coffee-session-content" id="content-coffee">
+              <div class="brew-type-display" id="brew-type-icon">🔥</div>
+              <div class="brew-type-label" id="brew-type-label">Hot Brew</div>
+              <div class="brew-timer" id="brew-timer">2:10</div>
+              <div class="brew-progress">
+                <div class="brew-progress-fill" id="brew-progress"></div>
+              </div>
+              <div class="coffee-animation-mini">
+                <div class="mini-cup" id="mini-cup">
+                  <div class="mini-fill" id="mini-fill"></div>
+                  <div class="mini-steam" id="mini-steam">
+                    <div class="mini-steam-line"></div>
+                    <div class="mini-steam-line"></div>
+                    <div class="mini-steam-line"></div>
+                  </div>
+                  <div class="mini-ice" id="mini-ice">
+                    <div class="mini-ice-cube"></div>
+                    <div class="mini-ice-cube"></div>
+                    <div class="mini-ice-cube"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="session-complete" id="complete-coffee" style="display: none;">
+              <div class="complete-icon">✓</div>
+              <h4 id="complete-coffee-title">Brew Complete!</h4>
+              <p id="complete-coffee-desc">Your coffee is ready. Enjoy!</p>
+            </div>
+          </div>
+          
+          <!-- Waiting State -->
+          <div class="waiting-state" id="waiting-coffee">
+            <div class="waiting-icon">☕</div>
+            <div class="waiting-text">Waiting for you to scan...</div>
+            <div class="waiting-hint">Use the TSE-X app to scan the QR code</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bike Lock -->
+      <div class="device-card lock" id="card-lock">
+        <div class="card-header">
+          <h3>🔓 Demo Bike Lock</h3>
+          <p>30-minute session with live countdown</p>
+          <div class="device-id">X402-LOCK-001-DEMO</div>
+          <div class="live-badge" id="live-lock">LIVE</div>
+        </div>
+        <div class="card-body">
+          <div class="card-content">
+            <div class="qr-section">
+              <div class="qr-container" id="qr-lock"></div>
+              <div class="qr-label">Scan to unlock</div>
+            </div>
+            <div class="device-info">
+              <p>Pay to unlock. 30-minute countdown runs in real-time. End early if needed.</p>
+              <div class="price-tag">Price: <span>$0.15</span> in TSE</div>
+            </div>
+          </div>
+          
+          <!-- Session Display -->
+          <div class="session-display" id="session-lock">
+            <div class="session-header">
+              <span class="session-title">Lock Status</span>
+              <span class="session-badge" id="badge-lock">UNLOCKED</span>
+            </div>
+            
+            <div class="lock-session-content" id="content-lock">
+              <div class="lock-status-icon" id="lock-icon">🔓</div>
+              <div class="lock-timer" id="lock-timer">30:00</div>
+              <div class="lock-session-info">
+                Session started at <span id="lock-start-time">--:--</span>
+              </div>
+              <div class="lock-actions">
+                <button class="end-session-btn" onclick="endLockSession()">🔒 End Session & Lock</button>
+              </div>
+            </div>
+            
+            <div class="session-complete" id="complete-lock" style="display: none;">
+              <div class="complete-icon">✓</div>
+              <h4>Session Ended</h4>
+              <p>Lock re-engaged. Ride safe!</p>
+            </div>
+            
+            <div class="session-complete" id="expired-lock" style="display: none;">
+              <div class="complete-icon expired">⏰</div>
+              <h4 class="expired">Session Expired</h4>
+              <p>30-minute rental ended. Lock re-engaged.</p>
+            </div>
+          </div>
+          
+          <!-- Waiting State -->
+          <div class="waiting-state" id="waiting-lock">
+            <div class="waiting-icon">🔒</div>
+            <div class="waiting-text">Waiting for you to scan...</div>
+            <div class="waiting-hint">Use the TSE-X app to scan the QR code</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vending Machine -->
+      <div class="device-card vending" id="card-vending">
+        <div class="card-header">
+          <h3>🍫 Demo Vending Machine</h3>
+          <p>40 items (A0-D9) • Real item selection sync</p>
+          <div class="device-id">X402-VENDING-001-DEMO</div>
+          <div class="live-badge" id="live-vending">LIVE</div>
+        </div>
+        <div class="card-body">
+          <div class="card-content">
+            <div class="qr-section">
+              <div class="qr-container" id="qr-vending"></div>
+              <div class="qr-label">Scan to purchase</div>
+            </div>
+            <div class="device-info">
+              <p>Select any item in the app. Your choice and dispense animation sync here.</p>
+              <div class="price-tag">Prices: <span>$0.03 - $0.10</span></div>
+            </div>
+          </div>
+          
+          <!-- Session Display -->
+          <div class="session-display" id="session-vending">
+            <div class="session-header">
+              <span class="session-title">Dispensing</span>
+              <span class="session-badge" id="badge-vending">IN PROGRESS</span>
+            </div>
+            
+            <div class="vending-session-content" id="content-vending">
+              <div class="vending-item-display">
+                <div class="vending-slot-code" id="vending-slot">A3</div>
+                <div class="vending-item-name" id="vending-name">Trail Mix</div>
+                <div class="vending-item-price" id="vending-price">$0.85</div>
+              </div>
+              <div class="vending-animation-mini">
+                <div class="mini-vending">
+                  <div class="mini-vending-display" id="vending-emoji">🥜</div>
+                  <div class="mini-vending-slot">
+                    <div class="mini-vending-item" id="vending-item">🥜</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="session-complete" id="complete-vending" style="display: none;">
+              <div class="complete-icon">✓</div>
+              <h4>Item Dispensed!</h4>
+              <p id="complete-vending-desc">Enjoy your Trail Mix!</p>
+            </div>
+          </div>
+          
+          <!-- Waiting State -->
+          <div class="waiting-state" id="waiting-vending">
+            <div class="waiting-icon">🍫</div>
+            <div class="waiting-text">Waiting for you to scan...</div>
+            <div class="waiting-hint">Use the TSE-X app to scan the QR code</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>TSE-X Interactive Demo • <a href="https://tse-sol.com/tse-x">Learn More</a> • <a href="https://tse-sol.github.io/tse-x-signup">Apply for Beta</a></p>
+    </footer>
+  </div>
+
+  <script>
+    // ==========================================
+    // CONFIGURATION
+    // ==========================================
+    const BACKEND_URL = 'https://tse-x-backend.onrender.com';
+    const POLL_INTERVAL = 1000;
+    
+    // Generate unique viewer ID
+    const viewerId = 'v' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+    document.getElementById('viewer-id').textContent = viewerId;
+    
+    // Vending Products (Demo prices: $0.03-$0.10)
+    const VENDING_PRODUCTS = {
+      'A0': { name: 'Potato Chips', emoji: '🥔', price: 0.05 },
+      'A1': { name: 'Pretzels', emoji: '🥨', price: 0.03 },
+      'A2': { name: 'Cheese Crackers', emoji: '🧀', price: 0.05 },
+      'A3': { name: 'Trail Mix', emoji: '🥜', price: 0.08 },
+      'A4': { name: 'Granola Bar', emoji: '🍫', price: 0.05 },
+      'A5': { name: 'Peanuts', emoji: '🥜', price: 0.03 },
+      'A6': { name: 'Popcorn', emoji: '🍿', price: 0.04 },
+      'A7': { name: 'Rice Crisps', emoji: '🍘', price: 0.03 },
+      'A8': { name: 'Corn Nuts', emoji: '🌽', price: 0.03 },
+      'A9': { name: 'Beef Jerky', emoji: '🥩', price: 0.10 },
+      'B0': { name: 'Water Bottle', emoji: '💧', price: 0.05 },
+      'B1': { name: 'Cola', emoji: '🥤', price: 0.08 },
+      'B2': { name: 'Lemon-Lime Soda', emoji: '🍋', price: 0.08 },
+      'B3': { name: 'Orange Juice', emoji: '🍊', price: 0.10 },
+      'B4': { name: 'Apple Juice', emoji: '🍎', price: 0.10 },
+      'B5': { name: 'Energy Drink', emoji: '⚡', price: 0.10 },
+      'B6': { name: 'Iced Tea', emoji: '🧊', price: 0.06 },
+      'B7': { name: 'Lemonade', emoji: '🍋', price: 0.06 },
+      'B8': { name: 'Sparkling Water', emoji: '💦', price: 0.05 },
+      'B9': { name: 'Sports Drink', emoji: '🏃', price: 0.08 },
+      'C0': { name: 'Apple', emoji: '🍎', price: 0.05 },
+      'C1': { name: 'Banana', emoji: '🍌', price: 0.03 },
+      'C2': { name: 'Orange', emoji: '🍊', price: 0.04 },
+      'C3': { name: 'Yogurt Cup', emoji: '🥛', price: 0.08 },
+      'C4': { name: 'Cheese Stick', emoji: '🧀', price: 0.06 },
+      'C5': { name: 'Hard Boiled Egg', emoji: '🥚', price: 0.05 },
+      'C6': { name: 'Fruit Cup', emoji: '🍇', price: 0.10 },
+      'C7': { name: 'Veggie Sticks', emoji: '🥕', price: 0.06 },
+      'C8': { name: 'Hummus Cup', emoji: '🫘', price: 0.07 },
+      'C9': { name: 'Protein Pack', emoji: '💪', price: 0.10 },
+      'D0': { name: 'Chocolate Bar', emoji: '🍫', price: 0.06 },
+      'D1': { name: 'Gummy Bears', emoji: '🐻', price: 0.04 },
+      'D2': { name: 'Cookies', emoji: '🍪', price: 0.05 },
+      'D3': { name: 'Brownie', emoji: '🟫', price: 0.07 },
+      'D4': { name: 'Candy Mix', emoji: '🍬', price: 0.04 },
+      'D5': { name: 'Mints', emoji: '🌿', price: 0.03 },
+      'D6': { name: 'Fruit Snacks', emoji: '🍓', price: 0.04 },
+      'D7': { name: 'Donut', emoji: '🍩', price: 0.06 },
+      'D8': { name: 'Muffin', emoji: '🧁', price: 0.08 },
+      'D9': { name: 'Rice Crispy Treat', emoji: '🍚', price: 0.04 }
+    };
+
+    // State
+    let currentSessions = { coffee: null, lock: null, vending: null };
+
+
+    // ==========================================
+    // GENERATE QR CODES WITH JSON FORMAT
+    // ==========================================
+    const TSE_WALLET = 'E7gnXdN4Nneh5KHBUgXVdUNXkBYtwNF4fkpzZU3otnmX';
+    const USDC_WALLET = '0x8469a3A136AE586356bAA89C61191D8E2d84B92f';
+    
+    const DEMO_DEVICE_INFO = {
+      'X402-COFFEE-001-DEMO': {
+        deviceId: 'X402-COFFEE-001-DEMO',
+        deviceName: 'Demo Coffee Maker',
+        deviceType: 'Coffee Machine',
+        model: 'X402-CM Demo',
+        firmwareVersion: '1.0.0',
+        chains: [
+          { chain: 'base', wallet: USDC_WALLET },
+          { chain: 'solana', wallet: TSE_WALLET }
+        ]
+      },
+      'X402-LOCK-001-DEMO': {
+        deviceId: 'X402-LOCK-001-DEMO',
+        deviceName: 'Demo Bike Lock',
+        deviceType: 'Bike Lock',
+        model: 'X402-BL Demo',
+        firmwareVersion: '1.0.0',
+        chains: [
+          { chain: 'base', wallet: USDC_WALLET },
+          { chain: 'solana', wallet: TSE_WALLET }
+        ]
+      },
+      'X402-VENDING-001-DEMO': {
+        deviceId: 'X402-VENDING-001-DEMO',
+        deviceName: 'Demo Vending Machine',
+        deviceType: 'Vending Machine',
+        model: 'X402-VM Demo',
+        firmwareVersion: '1.0.0',
+        chains: [
+          { chain: 'base', wallet: USDC_WALLET },
+          { chain: 'solana', wallet: TSE_WALLET }
+        ]
+      }
+    };
+    
+    function generateQR(elementId, deviceId) {
+      const deviceInfo = DEMO_DEVICE_INFO[deviceId];
+      // Add viewerId to JSON for syncing
+      const qrData = JSON.stringify({
+        ...deviceInfo,
+        viewerId: viewerId
+      });
+      
+      new QRCode(document.getElementById(elementId), {
+        text: qrData,
+        width: 165, height: 165,
+        colorDark: '#000000', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.L
+      });
+    }
+    
+    generateQR('qr-coffee', 'X402-COFFEE-001-DEMO');
+    generateQR('qr-lock', 'X402-LOCK-001-DEMO');
+    generateQR('qr-vending', 'X402-VENDING-001-DEMO');
+
+    // ==========================================
+    // POLLING
+    // ==========================================
+    async function pollSession(type, deviceId) {
+      try {
+        const response = await fetch(`${BACKEND_URL}/x402/${deviceId}/session?viewerId=${viewerId}`);
+        const data = await response.json();
+        
+        if (data.success && data.session) {
+          updateUI(type, data.session);
+        } else {
+          clearSession(type);
+        }
+      } catch (e) {
+        console.error(`Error polling ${type}:`, e);
+      }
+    }
+
+    // Start polling all devices
+    setInterval(() => pollSession('coffee', 'X402-COFFEE-001-DEMO'), POLL_INTERVAL);
+    setInterval(() => pollSession('lock', 'X402-LOCK-001-DEMO'), POLL_INTERVAL);
+    setInterval(() => pollSession('vending', 'X402-VENDING-001-DEMO'), POLL_INTERVAL);
+
+    // ==========================================
+    // UI UPDATES
+    // ==========================================
+    function updateUI(type, session) {
+      const wasNull = currentSessions[type] === null;
+      currentSessions[type] = session;
+      
+      // Show session, hide waiting
+      document.getElementById(`session-${type}`).classList.add('active');
+      document.getElementById(`waiting-${type}`).style.display = 'none';
+      document.getElementById(`live-${type}`).classList.add('show');
+      document.getElementById(`card-${type}`).classList.add('has-session');
+      
+      if (type === 'coffee') updateCoffeeUI(session);
+      else if (type === 'lock') updateLockUI(session);
+      else if (type === 'vending') updateVendingUI(session);
+    }
+
+    function clearSession(type) {
+      if (currentSessions[type] === null) return;
+      currentSessions[type] = null;
+      
+      document.getElementById(`session-${type}`).classList.remove('active');
+      document.getElementById(`waiting-${type}`).style.display = 'block';
+      document.getElementById(`live-${type}`).classList.remove('show');
+      document.getElementById(`card-${type}`).classList.remove('has-session');
+    }
+
+    // ==========================================
+    // COFFEE UI
+    // ==========================================
+    function updateCoffeeUI(session) {
+      const isIced = session.brewType === 'iced';
+      const remaining = session.remainingSeconds || 0;
+      const total = session.brewDurationSeconds || (isIced ? 150 : 130);
+      const elapsed = total - remaining;
+      const percent = Math.min(100, (elapsed / total) * 100);
+      
+      // Type display
+      document.getElementById('brew-type-icon').textContent = isIced ? '🧊' : '🔥';
+      document.getElementById('brew-type-label').textContent = isIced ? 'Over Ice' : 'Hot Brew';
+      
+      // Timer
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      document.getElementById('brew-timer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+      
+      // Progress
+      document.getElementById('brew-progress').style.width = percent + '%';
+      
+      // Mini cup animation
+      const miniCup = document.getElementById('mini-cup');
+      const miniFill = document.getElementById('mini-fill');
+      const miniSteam = document.getElementById('mini-steam');
+      const miniIce = document.getElementById('mini-ice');
+      
+      miniCup.classList.toggle('iced', isIced);
+      miniIce.classList.toggle('show', isIced);
+      miniSteam.classList.toggle('hidden', isIced);
+      miniFill.style.height = Math.min(75, percent * 0.75) + '%';
+      
+      // Status
+      const content = document.getElementById('content-coffee');
+      const complete = document.getElementById('complete-coffee');
+      const badge = document.getElementById('badge-coffee');
+      
+      if (session.status === 'complete') {
+        content.style.display = 'none';
+        complete.style.display = 'block';
+        badge.textContent = 'COMPLETE';
+        badge.style.background = 'var(--accent-green)';
+        
+        document.getElementById('complete-coffee-title').textContent = isIced ? 'Iced Coffee Ready!' : 'Hot Brew Complete!';
+        document.getElementById('complete-coffee-desc').textContent = isIced ? 'Your iced coffee is ready. Stay cool!' : 'Your coffee is ready. Enjoy!';
+        
+        miniSteam.classList.add('active');
+        miniFill.style.height = '75%';
+      } else {
+        content.style.display = 'block';
+        complete.style.display = 'none';
+        badge.textContent = 'BREWING';
+        badge.style.background = 'var(--accent-orange)';
+      }
+    }
+
+    // ==========================================
+    // LOCK UI
+    // ==========================================
+    function updateLockUI(session) {
+      const remaining = session.remainingSeconds || 0;
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+      
+      const timer = document.getElementById('lock-timer');
+      const icon = document.getElementById('lock-icon');
+      const content = document.getElementById('content-lock');
+      const complete = document.getElementById('complete-lock');
+      const expired = document.getElementById('expired-lock');
+      const badge = document.getElementById('badge-lock');
+      
+      // Start time
+      if (session.startedAt) {
+        const start = new Date(session.startedAt);
+        document.getElementById('lock-start-time').textContent = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+      
+      if (session.status === 'unlocked') {
+        content.style.display = 'block';
+        complete.style.display = 'none';
+        expired.style.display = 'none';
+        
+        timer.textContent = timeStr;
+        icon.textContent = '🔓';
+        badge.textContent = 'UNLOCKED';
+        badge.style.background = 'var(--accent-teal)';
+        
+        // Color based on time
+        timer.className = 'lock-timer';
+        if (mins < 5) timer.classList.add('critical');
+        else if (mins < 10) timer.classList.add('warning');
+        
+      } else if (session.status === 'expired') {
+        content.style.display = 'none';
+        complete.style.display = 'none';
+        expired.style.display = 'block';
+        badge.textContent = 'EXPIRED';
+        badge.style.background = 'var(--accent-orange)';
+        
+      } else if (session.status === 'locked') {
+        content.style.display = 'none';
+        complete.style.display = 'block';
+        expired.style.display = 'none';
+        badge.textContent = 'LOCKED';
+        badge.style.background = 'var(--accent-green)';
+      }
+    }
+
+    // ==========================================
+    // VENDING UI
+    // ==========================================
+    function updateVendingUI(session) {
+      const item = session.item;
+      const product = item ? VENDING_PRODUCTS[item.slot] : null;
+      
+      if (item) {
+        document.getElementById('vending-slot').textContent = item.slot;
+        document.getElementById('vending-name').textContent = item.name;
+        document.getElementById('vending-price').textContent = `$${item.price.toFixed(2)}`;
+        
+        const emoji = product?.emoji || '📦';
+        document.getElementById('vending-emoji').textContent = emoji;
+        document.getElementById('vending-item').textContent = emoji;
+      }
+      
+      const content = document.getElementById('content-vending');
+      const complete = document.getElementById('complete-vending');
+      const badge = document.getElementById('badge-vending');
+      const vendingItem = document.getElementById('vending-item');
+      
+      if (session.status === 'complete') {
+        content.style.display = 'none';
+        complete.style.display = 'block';
+        badge.textContent = 'COMPLETE';
+        badge.style.background = 'var(--accent-green)';
+        vendingItem.classList.add('dispensed');
+        
+        document.getElementById('complete-vending-desc').textContent = `Enjoy your ${item?.name || 'item'}!`;
+      } else {
+        content.style.display = 'block';
+        complete.style.display = 'none';
+        badge.textContent = 'DISPENSING';
+        badge.style.background = 'var(--accent-purple)';
+        vendingItem.classList.add('dispensed');
+      }
+    }
+
+    // ==========================================
+    // ACTIONS
+    // ==========================================
+    async function endLockSession() {
+      try {
+        await fetch(`${BACKEND_URL}/x402/X402-LOCK-001-DEMO/lock`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ viewerId: viewerId })
+        });
+      } catch (e) {
+        console.error('Error ending lock session:', e);
+      }
+    }
+  </script>
+</body>
+</html>
