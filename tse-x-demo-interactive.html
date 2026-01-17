@@ -1255,14 +1255,54 @@
     // ACTIONS
     // ==========================================
     async function endLockSession() {
+      const btn = document.querySelector('.end-session-btn');
+      const originalText = btn.textContent;
+      
       try {
-        await fetch(`${BACKEND_URL}/x402/X402-LOCK-001-DEMO/lock`, {
+        // Show loading state
+        btn.textContent = '⏳ Ending...';
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        
+        const response = await fetch(`${BACKEND_URL}/x402/X402-LOCK-001-DEMO/end-session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ viewerId: viewerId })
         });
+        
+        const data = await response.json();
+        console.log('End session response:', data);
+        
+        if (response.ok && data.success) {
+          // Immediately update UI to locked state
+          const content = document.getElementById('content-lock');
+          const complete = document.getElementById('complete-lock');
+          const badge = document.getElementById('badge-lock');
+          
+          content.style.display = 'none';
+          complete.style.display = 'block';
+          badge.textContent = 'LOCKED';
+          badge.style.background = 'var(--accent-green)';
+          
+          btn.textContent = '✓ Locked!';
+        } else {
+          // Show error
+          btn.textContent = '❌ Failed - Try Again';
+          console.error('Failed to end session:', data);
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+            btn.style.opacity = '1';
+          }, 2000);
+        }
       } catch (e) {
         console.error('Error ending lock session:', e);
+        btn.textContent = '❌ Error';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.disabled = false;
+          btn.style.opacity = '1';
+        }, 2000);
       }
     }
   </script>
