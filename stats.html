@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TSE-X Live Stats</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      padding: 2rem;
+      color: #fff;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 2.5rem;
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 40px rgba(0, 217, 255, 0.2);
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #00d9ff;
+    }
+    
+    .stat-value.volume {
+      color: #00ff88;
+    }
+    
+    .stat-value.buyers {
+      color: #ff6b6b;
+    }
+    
+    .breakdown {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+    
+    .breakdown-label {
+      color: #888;
+    }
+    
+    .breakdown-value {
+      color: #fff;
+      font-weight: 600;
+    }
+    
+    .transactions-section {
+      margin-top: 2rem;
+    }
+    
+    .transactions-section h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+    
+    .transactions-table {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .transactions-table th,
+    .transactions-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .transactions-table th {
+      background: rgba(255, 255, 255, 0.05);
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+    }
+    
+    .transactions-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .chain-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .chain-badge.solana {
+      background: rgba(153, 69, 255, 0.2);
+      color: #9945ff;
+    }
+    
+    .chain-badge.base {
+      background: rgba(0, 82, 255, 0.2);
+      color: #0052ff;
+    }
+    
+    .token-badge {
+      font-weight: 600;
+    }
+    
+    .token-badge.usdc {
+      color: #2775ca;
+    }
+    
+    .token-badge.tse {
+      color: #00d9ff;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: #888;
+    }
+    
+    .error {
+      color: #ff6b6b;
+      text-align: center;
+      padding: 1rem;
+    }
+    
+    .refresh-btn {
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      color: #000;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    
+    .refresh-btn:hover {
+      opacity: 0.9;
+    }
+    
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .last-updated {
+      font-size: 0.8rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ TSE-X Live Stats</h1>
+    
+    <div class="stats-grid" id="statsGrid">
+      <div class="loading">Loading stats...</div>
+    </div>
+    
+    <div class="transactions-section">
+      <div class="header-row">
+        <h2>Recent Transactions</h2>
+        <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+      </div>
+      <div id="transactionsContainer">
+        <div class="loading">Loading transactions...</div>
+      </div>
+      <p class="last-updated" id="lastUpdated"></p>
+    </div>
+  </div>
+
+  <script>
+    // ========== CONFIGURATION ==========
+    // Change this to your backend URL
+    const API_BASE = 'https://tse-x-backend.onrender.com';
+    
+    // ========== DATA LOADING ==========
+    async function loadStats() {
+      try {
+        const response = await fetch(`${API_BASE}/api/stats`);
+        const data = await response.json();
+        
+        if (data.success) {
+          renderStats(data.stats);
+        } else {
+          document.getElementById('statsGrid').innerHTML = '<div class="error">Failed to load stats</div>';
+        }
+      } catch (error) {
+        document.getElementById('statsGrid').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+      }
+    }
+    
+    async function loadTransactions() {
+      try {
+        const response = await fetch(`${API_BASE}/api/transactions?limit=10`);
+        const data = await response.json();
+        
+        if (data.success) {
+          renderTransactions(data.transactions);
+        } else {
+          document.getElementById('transactionsContainer').innerHTML = '<div class="error">Failed to load transactions</div>';
+        }
+      } catch (error) {
+        document.getElementById('transactionsContainer').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+      }
+    }
+    
+    // ========== RENDERING ==========
+    function renderStats(stats) {
+      const html = `
+        <div class="stat-card">
+          <div class="stat-label">Total Transactions</div>
+          <div class="stat-value">${stats.transactions.toLocaleString()}</div>
+          <div class="breakdown">
+            <div class="breakdown-item">
+              <span class="breakdown-label">Base</span>
+              <span class="breakdown-value">${stats.byChain.base.transactions}</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label">Solana</span>
+              <span class="breakdown-value">${stats.byChain.solana.transactions}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Total Volume</div>
+          <div class="stat-value volume">${stats.volumeFormatted}</div>
+          <div class="breakdown">
+            <div class="breakdown-item">
+              <span class="breakdown-label">USDC</span>
+              <span class="breakdown-value">$${stats.byToken.USDC.volume.toFixed(2)}</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label">TSE</span>
+              <span class="breakdown-value">$${stats.byToken.TSE.volume.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Unique Buyers</div>
+          <div class="stat-value buyers">${stats.buyers.toLocaleString()}</div>
+        </div>
+      `;
+      
+      document.getElementById('statsGrid').innerHTML = html;
+    }
+    
+    function renderTransactions(transactions) {
+      if (transactions.length === 0) {
+        document.getElementById('transactionsContainer').innerHTML = '<div class="loading">No transactions yet</div>';
+        return;
+      }
+      
+      const rows = transactions.map(tx => `
+        <tr>
+          <td>${new Date(tx.timestamp).toLocaleString()}</td>
+          <td><span class="chain-badge ${tx.chain}">${tx.chain}</span></td>
+          <td><span class="token-badge ${tx.token.toLowerCase()}">${tx.token}</span></td>
+          <td>$${tx.amountUsd.toFixed(2)}</td>
+          <td>${tx.wallet || '-'}</td>
+          <td>${tx.deviceId || '-'}</td>
+        </tr>
+      `).join('');
+      
+      const html = `
+        <table class="transactions-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Chain</th>
+              <th>Token</th>
+              <th>Amount</th>
+              <th>Wallet</th>
+              <th>Device</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+      
+      document.getElementById('transactionsContainer').innerHTML = html;
+      document.getElementById('lastUpdated').textContent = `Last updated: ${new Date().toLocaleString()}`;
+    }
+    
+    // ========== INITIALIZATION ==========
+    function loadData() {
+      loadStats();
+      loadTransactions();
+    }
+    
+    // Load on page load
+    loadData();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadData, 30000);
+  </script>
+</body>
+</html>
